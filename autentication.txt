@@ -1,0 +1,26 @@
+ JWT Setup Roadmap
+
+  - Pick Dependencies – Add Microsoft.AspNetCore.Authentication.JwtBearer to OnlineStore.API. If you want to
+    issue tokens inside your API, also add Microsoft.IdentityModel.Tokens and plan on using a symmetric key
+    (e.g., appsettings.json → "Jwt": { "Key": "...strong secret...", "Issuer": "...", "Audience": "..." }).
+  - Configure Services – In Program.cs, call
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(...), using the
+    key/issuer/audience values above for TokenValidationParameters. Add builder.Services.AddAuthorization();.
+  - Plug Pipeline – Between app.UseHttpsRedirection() and app.UseAuthorization(), insert
+    app.UseAuthentication();. Without this, the middleware never runs.
+  - User Repository Prep – Ensure IUserRepository exposes a way to validate credentials (e.g.,
+    GetByEmailAsync) and that passwords are stored hashed. If you’re still storing raw hashes from the
+    request, now’s the time to integrate a hasher (e.g., PasswordHasher<T> or BCrypt).
+  - Issue Tokens – Create an AuthController (or add actions to UsersController) with endpoints:
+      1. POST /api/auth/login → verify email/password, build claims (new Claim(ClaimTypes.NameIdentifier,
+         user.UserId.ToString()), plus role), sign with the shared key, return JWT (and optionally a refresh
+         token).
+      2. Optional: POST /api/auth/refresh if you want longer-lived sessions.
+  - Protect Routes – Decorate write-sensitive controllers/actions with [Authorize], leaving read-only ones
+    [AllowAnonymous] if desired. For role checks, use [Authorize(Roles = "Admin")].
+  - Test End-to-End – Use Swagger (it has an “Authorize” button once JWT auth is configured) or Postman:
+      1. Hit /api/auth/login, copy the token.
+      2. Add Authorization: Bearer <token> header to a protected endpoint (e.g., POST /api/products) and
+         confirm you now get 200/201 instead of 401.
+  - Housekeeping – Rotate secrets via config (do not hardcode), set reasonable token lifetimes, and consider
+    logging out by tracking token revocation (optional).
