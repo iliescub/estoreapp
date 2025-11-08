@@ -11,6 +11,11 @@ public class User
 	public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 	public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 	public DateTime LastLoginAt { get; set; } = DateTime.UtcNow;
-	public int UserStatus { get; set; }
+	public UserState UserStatus { get; set; } = UserState.Active;
 }
-
+public enum UserState
+{
+    Active,
+    Inactive,
+	Blocked
+}

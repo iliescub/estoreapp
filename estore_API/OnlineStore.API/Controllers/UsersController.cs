@@ -1,4 +1,8 @@
+using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+
   using OnlineStore.Core.Entities;
   using OnlineStore.Core.Interfaces;
 using System.Linq;
@@ -10,21 +14,24 @@ using System.Linq;
   public class UsersController : ControllerBase
   {
       private readonly IUserRepository _userRepository;
+    private readonly IPasswordHasher<User> _passwordHasher;
 
-      public UsersController(IUserRepository userRepository)
+    public UsersController(IUserRepository userRepository)
       {
           _userRepository = userRepository;
       }
 
       [HttpGet]
-      public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<IEnumerable<User>>> GetUsers()
       {
           var users = await _userRepository.GetAllAsync();
           return Ok(Sanitize(users));
       }
 
       [HttpGet("{id}")]
-      public async Task<ActionResult<User>> GetUser(int id)
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<User>> GetUser(int id)
       {
           var user = await _userRepository.GetByIdAsync(id);
           if (user is null) return NotFound();
@@ -32,7 +39,8 @@ using System.Linq;
       }
 
       [HttpGet("search")]
-      public async Task<ActionResult<IEnumerable<User>>> Search([FromQuery] string? term)
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<IEnumerable<User>>> Search([FromQuery] string? term)
       {
           if (string.IsNullOrWhiteSpace(term)) return BadRequest("Search term is required.");
           var users = await _userRepository.SearchAsync(term);
@@ -40,13 +48,14 @@ using System.Linq;
       }
 
       [HttpGet("email/{email}")]
-      public async Task<ActionResult<User>> GetByEmail(string email)
+    [Authorize]
+    public async Task<ActionResult<User>> GetByEmail(string email)
       {
           var user = await _userRepository.GetByEmailAsync(email);
           if (user is null) return NotFound();
           return Ok(Sanitize(user));
       }
-
+/*
       [HttpPost]
       public async Task<ActionResult<User>> CreateUser(User user)
       {
@@ -57,9 +66,10 @@ using System.Linq;
           var created = await _userRepository.AddAsync(user);
           return CreatedAtAction(nameof(GetUser), new { id = created.UserId }, Sanitize(created));
       }
-
+*/
       [HttpPut("{id}")]
-      public async Task<IActionResult> UpdateUser(int id, User user)
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateUser(int id, User user)
       {
           if (id != user.UserId) return BadRequest();
 
@@ -69,7 +79,7 @@ using System.Linq;
           existing.FirstName = user.FirstName;
           existing.LastName = user.LastName;
           existing.CustomerEmail = user.CustomerEmail;
-          existing.PasswordHash = user.PasswordHash;
+          existing.PasswordHash = _passwordHasher.HashPassword(user, user.PasswordHash);
           existing.Role = user.Role;
           existing.UserStatus = user.UserStatus;
           existing.UpdatedAt = DateTime.UtcNow;
@@ -79,7 +89,8 @@ using System.Linq;
       }
 
       [HttpDelete("{id}")]
-      public async Task<IActionResult> DeleteUser(int id)
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteUser(int id)
       {
           var existing = await _userRepository.GetByIdAsync(id);
           if (existing is null) return NotFound();

@@ -1,0 +1,15 @@
+
+git init
+git clone <url>
+
+git init
+git remote add origin <url>
+git fetch origin		(brings the metadata)
+git checkout -b main 	(creates a new branch)	
+git add .  / git add --all		(add al files)
+git reset (clears all files from index)
+git status 		(check what’s added)
+git commit – m “message” 	(commit local)
+git push -u origin
+
+git rm -r --cached folder_name

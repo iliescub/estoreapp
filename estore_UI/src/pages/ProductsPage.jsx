@@ -84,11 +84,11 @@ export default function ProductsPage() {
     ))}
   </div>
 
-  <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-    {filteredProducts?.map((product) => (
-      <ProductCard key={product.id} product={product} />
-    ))}
-  </div>
+    <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        {filteredProducts?.map((product) => (
+        <ProductCard key={product.id} product={product} />
+        ))}
+    </div>
     </section>
   );
 }

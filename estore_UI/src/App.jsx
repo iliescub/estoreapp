@@ -4,12 +4,17 @@ import { CartProvider } from './context/CartContext';
 import Header from './components/Header';
 import ProductsPage from './pages/ProductsPage';
 import CartPage from './pages/CartPage';
+import { AuthProvider } from './context/AuthContext';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
+
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+    <AuthProvider>    
       <CartProvider>
         <BrowserRouter>
           <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
@@ -18,11 +23,14 @@ function App() {
               <Routes>
                 <Route path="/" element={<ProductsPage />} />
                 <Route path="/cart" element={<CartPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<SignupPage />} />
               </Routes>
             </div>
           </div>
         </BrowserRouter>
       </CartProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

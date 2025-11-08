@@ -135,6 +135,18 @@ USE SmartEStore;
    select * from dbo.Products
   select * from dbo.Orders
 
+  UPDATE Products
+  SET
+      ProductName = 'Laptop Pro 15',
+      Description = 'High-performance laptop with 16GB RAM and 512GB SSD. Perfect for professionals and content creators.',
+      Price = 1299.99,
+      Stock = 15,
+      CategoryId = 1,
+      ImageUrl = 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500'
+  WHERE ProductId = 1;
+
+GO
+
 
    -- ============================================
 -- SEED DATA - Categories
