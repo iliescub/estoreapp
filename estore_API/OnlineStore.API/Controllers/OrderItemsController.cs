@@ -1,4 +1,5 @@
- using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
   using OnlineStore.Core.Entities;
   using OnlineStore.Core.Interfaces;
 
@@ -6,7 +7,8 @@
 
   [ApiController]
   [Route("api/[controller]")]
-  public class OrderItemsController : ControllerBase
+[Authorize(Roles = "Admin")]
+public class OrderItemsController : ControllerBase
   {
       private readonly IOrderItemRepository _orderItemRepository;
 

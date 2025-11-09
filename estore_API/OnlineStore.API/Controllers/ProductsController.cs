@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using OnlineStore.Core.Entities;
 using OnlineStore.Core.Interfaces;
 
@@ -16,6 +17,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
     {
         var products = await _productRepository.GetAllAsync();
@@ -23,6 +25,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [AllowAnonymous]
     public async Task<ActionResult<Product>> GetProduct(int id)
     {
         var product = await _productRepository.GetByIdAsync(id);
@@ -48,6 +51,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<Product>> CreateProduct(Product product)
     {
         var created = await _productRepository.AddAsync(product);
@@ -62,6 +66,7 @@ public class ProductsController : ControllerBase
         return NoContent();
     }*/
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateProduct(int id, Product product)
     {
         if (id != product.ProductId) return BadRequest();
@@ -81,6 +86,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteProduct(int id)
     {
         await _productRepository.DeleteAsync(id);

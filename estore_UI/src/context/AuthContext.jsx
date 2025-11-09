@@ -37,6 +37,18 @@
        role: data.role,
       });
     };
+    const refreshProfile = async () => {
+      const { data } = await authAPI.me();
+      setUser((prev) => ({
+        ...prev,
+        id: data.userId,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        role: data.role,
+      }));
+    };
+    
     const login = async (email, password) => {
       setLoading(true);
       try {
@@ -64,7 +76,7 @@
     };
 
     const value = useMemo(
-       () => ({ user, token, loading, login, register, logout, isAdmin: user?.role === 'Admin' }),
+       () => ({ user, token, loading, login, register, logout, refreshProfile, isAdmin: user?.role === 'Admin' }),
        [user, token, loading]
     );
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

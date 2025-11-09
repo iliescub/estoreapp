@@ -25,10 +25,14 @@ export default function Header() {
                   </span>
                 )}
               </Link>
-
+              {user && (
+                <Link to="/orders" className="hover:text-blue-200">
+                  My Orders
+                </Link>
+              )}
               {isAdmin && (
                 <button
-                  onClick={() => navigate('/admin')}
+                  onClick={() => navigate('/admin/users')}
                   className="rounded-full bg-white/20 px-4 py-1 text-sm font-semibold hover:bg-white/30"
                 >
                   Admin
@@ -38,7 +42,11 @@ export default function Header() {
               {user ? (
                 <div className="flex items-center gap-3">
                   <span className="text-sm">
-                    Hi, <strong>{user.firstName}</strong>
+                      {user && (
+                        <button onClick={() => navigate('/profile')} className="text-sm hover:underline">
+                          Hi, <strong>{user.firstName}</strong>
+                        </button>
+                      )}
                   </span>
                   <button
                     onClick={logout}

@@ -8,6 +8,7 @@ using OnlineStore.Core.Entities;
 using OnlineStore.Core.Interfaces;
 using OnlineStore.Infrastructure.Data;
 using OnlineStore.Infrastructure.Repositories;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +16,30 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    var securityScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Enter `Bearer {token}`",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Reference = new OpenApiReference
+        {
+            Type = ReferenceType.SecurityScheme,
+            Id = "Bearer"
+        }
+    };
+
+    options.AddSecurityDefinition("Bearer", securityScheme);
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+         {
+             { securityScheme, Array.Empty<string>() }
+         });
+});
+
 
 // Database connection
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -68,7 +92,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-await app.SeedAdminAsync();
+//await app.SeedAdminAsync();
 
 // Configure pipeline
 if (app.Environment.IsDevelopment())

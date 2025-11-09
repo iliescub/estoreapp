@@ -2,12 +2,17 @@ using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using OnlineStore.API.Models.Users;
 
-  using OnlineStore.Core.Entities;
+
+using OnlineStore.Core.Entities;
   using OnlineStore.Core.Interfaces;
 using System.Linq;
 
-  namespace OnlineStore.API.Controllers;
+using OnlineStore.API.Models.Users;
+
+namespace OnlineStore.API.Controllers;
 
   [ApiController]
   [Route("api/[controller]")]
@@ -16,10 +21,11 @@ using System.Linq;
       private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher<User> _passwordHasher;
 
-    public UsersController(IUserRepository userRepository)
-      {
+    public UsersController(IUserRepository userRepository, IPasswordHasher<User> passwordHasher)
+    {
           _userRepository = userRepository;
-      }
+         _passwordHasher = passwordHasher;
+    }
 
       [HttpGet]
     [Authorize(Roles = "Admin")]
@@ -30,7 +36,7 @@ using System.Linq;
       }
 
       [HttpGet("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<ActionResult<User>> GetUser(int id)
       {
           var user = await _userRepository.GetByIdAsync(id);
@@ -69,26 +75,53 @@ using System.Linq;
 */
       [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateUser(int id, User user)
+    public async Task<IActionResult> UpdateUser(int id, UpdateUserRequest request )
       {
-          if (id != user.UserId) return BadRequest();
+        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        if (id != request.UserId) return BadRequest();
 
-          var existing = await _userRepository.GetByIdAsync(id);
+        var existing = await _userRepository.GetByIdAsync(id);
           if (existing is null) return NotFound();
 
-          existing.FirstName = user.FirstName;
-          existing.LastName = user.LastName;
-          existing.CustomerEmail = user.CustomerEmail;
-          existing.PasswordHash = _passwordHasher.HashPassword(user, user.PasswordHash);
-          existing.Role = user.Role;
-          existing.UserStatus = user.UserStatus;
-          existing.UpdatedAt = DateTime.UtcNow;
+        existing.FirstName = request.FirstName;
+        existing.LastName = request.LastName;
+        existing.CustomerEmail = request.Email;
+        existing.Role = request.Role;
+        existing.UserStatus = request.UserStatus;
+        if (!string.IsNullOrWhiteSpace(request.NewPassword))
+        {
+            existing.PasswordHash = _passwordHasher.HashPassword(existing, request.NewPassword);
+        }
+        existing.UpdatedAt = DateTime.UtcNow;
 
           await _userRepository.UpdateAsync(existing);
           return NoContent();
       }
 
-      [HttpDelete("{id}")]
+    [HttpPut("me")]
+    [Authorize]
+    public async Task<IActionResult> UpdateProfile(UpdateProfileRequest request)
+    {
+        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+        var email = User.FindFirst(ClaimTypes.Email)?.Value;
+        if (string.IsNullOrWhiteSpace(email)) return Unauthorized();
+
+        var user = await _userRepository.GetByEmailAsync(email);
+        if (user is null) return NotFound();
+
+        user.FirstName = request.FirstName;
+        user.LastName = request.LastName;
+        user.CustomerEmail = request.Email;
+        if (!string.IsNullOrWhiteSpace(request.NewPassword))
+            user.PasswordHash = _passwordHasher.HashPassword(user, request.NewPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _userRepository.UpdateAsync(user);
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteUser(int id)
       {

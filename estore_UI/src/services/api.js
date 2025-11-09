@@ -24,6 +24,31 @@ const api = axios.create({
     name: apiCategory.categoryName,
   });
 
+    const mapOrderItem = (apiItem) => ({
+    id: apiItem.orderItemId,
+    productId: apiItem.productId,
+    quantity: apiItem.quantity,
+    price: apiItem.price,
+  });
+
+  const mapOrder = (apiOrder) => ({
+    id: apiOrder.orderId,
+    userId: apiOrder.userId,
+    total: apiOrder.totalAmount,
+    status: apiOrder.status,
+    createdAt: apiOrder.createdAt,
+    items: (apiOrder.orderItems ?? []).map(mapOrderItem),
+  });
+
+    const mapUser = (apiUser) => ({
+    id: apiUser.userId,
+    firstName: apiUser.firstName,
+    lastName: apiUser.lastName,
+    email: apiUser.customerEmail,
+    role: apiUser.role,
+    status: apiUser.userStatus,
+  });
+
   export const productsAPI = {
     getAll: () => api.get('/products').then(res => res.data.map(mapProduct)),
     getById: id => api.get(`/products/${id}`).then(res => mapProduct(res.data)),
@@ -38,6 +63,22 @@ const api = axios.create({
 
   export const categoriesAPI = {
     getAll: () => api.get('/categories').then(res => res.data.map(mapCategory)),
+  };
+
+    export const ordersAPI = {
+    create: (items) => api.post('/orders', { items }),
+    getMine: (userId) => api.get(`/orders/user/${userId}`).then((res) => res.data.map(mapOrder)),
+  };
+
+  export const usersAPI = {
+  me: () => api.get('/auth/me').then(res => res.data),
+   updateMe: (payload) => api.put('/users/me', payload),
+  };
+
+  export const adminUsersAPI = {
+    getAll: () => api.get('/users').then((res) => res.data.map(mapUser)),
+    update: (id, payload) => api.put(`/users/${id}`, payload),
+    delete: (id) => api.delete(`/users/${id}`),
   };
 
 export default api;
